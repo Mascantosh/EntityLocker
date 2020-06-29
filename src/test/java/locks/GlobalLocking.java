@@ -4,7 +4,10 @@ import deadlockpreventer.exceptions.DeadlockPreventedException;
 import entitylocker.EntityLocker;
 import entitylocker.MultiEntityLocker;
 import locks.entity.SimpleEntity;
-import org.junit.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.rules.Timeout;
 import utils.CountDownLatchSilentWaiter;
 import utils.SilentLocker;
@@ -132,7 +135,6 @@ public class GlobalLocking {
     }
 
     @Test
-    //TODO race condition if we have locked threads allow them to lock other entities
     public void testGlobalLockAllowLockEntitiesFromTheSameThread() {
         THREAD_STARTER.startThread(() -> {
             silentLocker.lock(2);

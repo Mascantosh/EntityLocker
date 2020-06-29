@@ -83,56 +83,6 @@ public class Escalation {
         waitThread(secondSubThread);
     }
 
-    //TODO
-    @Test(expected = DeadlockPreventedException.class)
-    public void escalationInterruptDueDeadLock() {
-        final int startEntity = 2;
-        final int lockEntities = 4;
-        final int lastEntity = multiEntitiesEvaluator(silentLocker::lock, startEntity, lockEntities);
-
-        final CountDownLatch escalationPreventLock = new CountDownLatch(1);
-        final CountDownLatch mainEscalation = new CountDownLatch(1);
-
-        final ThrowableThread subThread = THREAD_STARTER.startThread(() -> {
-            final int entityId = 0;
-
-            silentLocker.lock(entityId);
-            silentLocker.lock(entityId + 1);
-
-            mainThreadWaiter.countDown();
-
-            sleep(1);
-
-            lockWithIgnoreException(entityId + 2);
-
-            sleep(1);
-
-            entityLocker.unlock(entityId + 1);
-            entityLocker.unlock(entityId);
-
-            silentWaiter.await(subThreadWaiter);
-            assertTrue(silentLocker.tryLock(lastEntity));
-            mainEscalation.countDown();
-            entityLocker.unlock(lastEntity);
-
-            silentWaiter.await(escalationPreventLock);
-            assertFalse(silentLocker.tryLock(lastEntity + 1));
-        });
-
-        silentWaiter.await(mainThreadWaiter);
-
-        silentLocker.lock(lastEntity);
-
-        entityLocker.unlock(lastEntity);
-        subThreadWaiter.countDown();
-        silentWaiter.await(mainEscalation);
-
-        silentLocker.lock(lastEntity);
-        escalationPreventLock.countDown();
-
-        waitThread(subThread);
-    }
-
     private int multiEntitiesEvaluator(IntConsumer entityLocker, int start, int count) {
         final int end = start + count;
         for (int i = start; i < end; ++i) {

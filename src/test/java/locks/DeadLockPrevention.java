@@ -103,7 +103,6 @@ public class DeadLockPrevention {
     }
 
     @Test
-    //TODO we cannot lock entity 1 because it's locked before global lock
     public void testCancelGlobalLockDueDeadlock() {
         final int[] entities = entitiesIds(2);
 
@@ -123,9 +122,7 @@ public class DeadLockPrevention {
             entityLocker.unlock(entities[0]);
             throw new RuntimeException(exception);
         });
-        subThread.setUncaughtExceptionHandler((t, e) -> {
-            expectedException = e;
-        });
+        subThread.setUncaughtExceptionHandler((t, e) -> expectedException = e);
 
         subThread.start();
 
